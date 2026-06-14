@@ -195,12 +195,22 @@ adds `+N` to the trigger so the rewind hits the row boundary exactly. Each fix i
 
 All patches are located by unique signatures (verified 1 occurrence on EU/US/JP,
 except the two `subu`/count words which are disambiguated by a context window or by
-proximity to the unique wrap store). Caves are placed in executable zero-padding
-holes found dynamically; v1.1 needs 6 caves (33 words total) spread across the
-`0x1f8xxx–0x1fexxx` padding band.
+proximity to the unique wrap store). v1.1 needs 6 code-caves (33 words total).
 
-All validated byte-level on EU, US and JP; the JP auto-output is logically
-identical to the in-game-confirmed manual reference (only cave addresses differ).
+**Cave placement (important).** Not every zero-run in the exec image is safe: some
+are runtime scratch (zeroed in the file but written at run time), and the big
+end-of-segment hole is clobbered too — a cave placed there is overwritten and the
+hook jumps into garbage (black screen). Only the **mid-segment code padding** is
+read-only at run time. The allocator therefore anchors on the first `>=14`-word
+hole scanned ascending (the exact region the in-game-validated v1.0 build used),
+then allocates **only from the largest holes of that local band** (worst-fit,
+big caves first), so all 6 caves land in the proven-safe padding (`0x1ff1b4`,
+`0x1fef38`, `0x1feed0` on every region) and the small/scattered/end holes are
+never touched.
+
+All validated byte-level on EU, US and JP; the JP auto-output renders identically
+to the in-game-confirmed manual reference (same patch logic; caves in the same
+proven-safe band).
 
 ### Per-region anchors (informational; the patcher does not hard-code these)
 
