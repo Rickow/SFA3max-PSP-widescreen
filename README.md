@@ -1,5 +1,7 @@
 # SFA3 MAX — Native 16:9 Widescreen Patch (PSP)
 
+> 🌐 **English** · [日本語](README.ja.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (BR)](README.pt-BR.md)
+
 Native **16:9 (480×272)** widescreen patch for **Street Fighter Alpha 3 MAX** /
 **Street Fighter Zero 3 Double Upper** on PSP.
 
