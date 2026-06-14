@@ -124,12 +124,18 @@ def find_exec_zero_holes(buf, min_words=4):
     return holes
 
 class CaveAlloc:
-    def __init__(self, holes): self.holes = holes
+    """Allocate caves from the LARGEST holes first (worst-fit). Small scattered
+    zero-runs in the exec image are NOT reliably safe at runtime (some are
+    runtime scratch and get clobbered -> jump into garbage -> black screen).
+    The big padding bands (the same ones the validated manual build used) are
+    the proven-safe code padding, so we always pull from the biggest hole that
+    fits and keep the tiny risky holes untouched."""
+    def __init__(self, holes): self.holes = [list(h) for h in holes]
     def alloc(self, n):
-        for h in self.holes:
-            if h[1] >= n:
-                va = h[0]; h[0] += n*4; h[1] -= n; return va
-        return None
+        cand = [h for h in self.holes if h[1] >= n]
+        if not cand: return None
+        h = max(cand, key=lambda x: x[1])   # biggest hole that fits
+        va = h[0]; h[0] += n*4; h[1] -= n; return va
 
 def addiu_word(reg, imm):
     """addiu reg,reg,imm"""
@@ -229,8 +235,29 @@ def patch(buf, log):
         return err
 
     # ---------- caves ----------
+    # The validated v1.0 build placed its cave in the FIRST big (>=14-word) zero
+    # hole scanned ascending from the start: that is the proven-safe mid-segment
+    # code-padding band (NOT the big end-of-segment hole, which is runtime
+    # scratch and crashes). We anchor on that hole and only allocate from the
+    # local padding band around it, biggest-hole-first (see CaveAlloc).
     holes = find_exec_zero_holes(buf, 4)
-    alloc = CaveAlloc(holes)
+    anchor = next((h for h in holes if h[1] >= 14), None)
+    if anchor is None:
+        log.append("  [ERR] pas de banc de padding (>=14 mots)"); return 1
+    lo = anchor[0] - 0x800
+    hi = anchor[0] + anchor[1]*4 + 0x100
+    band = [h for h in holes if lo <= h[0] < hi]
+    # Use only the LARGEST holes of the band (the real padding bands, the ones the
+    # validated build used) until we have >=33 words; this skips the tiny scattered
+    # zero-runs that are not reliably safe at runtime.
+    NEED = 33
+    chosen, acc = [], 0
+    for h in sorted(band, key=lambda x: -x[1]):
+        chosen.append(h); acc += h[1]
+        if acc >= NEED: break
+    if acc < NEED:
+        log.append(f"  [ERR] banc de caves trop petit ({acc} mots, besoin {NEED})"); return 1
+    alloc = CaveAlloc(chosen)
     def mkhook_xptr(site, hi_addiu_imm, lo_addiu_imm, shword):
         """Xstart-= / ptr-= hook cave (7 words). shword = original sh rt,0x8(rs)."""
         rt = (shword >> 16) & 0x1F; rs = (shword >> 21) & 0x1F
@@ -249,16 +276,18 @@ def patch(buf, log):
         if va is None: return None, None
         return va, [addiu_word(rt, plus), shword, J((site - 0x74) + 8), 0]
 
-    builds = []   # (cave_va, cave_words, hook_site_off)
+    builds = []   # ((cave_va, cave_words), hook_site_off)
+    # Allocate the 7-word hook caves FIRST (constrained), then the 4-word wrap
+    # caves, so the big caves land in the big safe padding bands.
     # v1.0 hooks (Xstart-=48/ptr-=12 for 16px; Xstart-=64/ptr-=8 for 32px)
     cA = mkhook_xptr(hookA, -48, -12, SIG_HOOKA); builds.append((cA, hookA))
     cB = mkhook_xptr(hookB, -64,  -8, SIG_HOOKB); builds.append((cB, hookB))
-    # v1.1 wrap fixes
+    # v1.1 177c8 hook (32px: -64/-8)
+    h7 = mkhook_xptr(hook177, -64, -8, SIG_HOOK177); builds.append((h7, hook177))
+    # v1.1 wrap fixes (4-word caves)
     wA = mkwrap(wrapA, WRAP_DRAW16[1], WRAP_DRAW16[0]); builds.append((wA, wrapA))
     wB = mkwrap(wrapB, WRAP_DRAW32[1], WRAP_DRAW32[0]); builds.append((wB, wrapB))
     w7 = mkwrap(wrap177, WRAP_177C8[1], WRAP_177C8[0]); builds.append((w7, wrap177))
-    # v1.1 177c8 hook (32px: -64/-8)
-    h7 = mkhook_xptr(hook177, -64, -8, SIG_HOOK177); builds.append((h7, hook177))
 
     for (cv, _), site in builds:
         if cv is None:
