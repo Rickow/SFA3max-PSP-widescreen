@@ -1,0 +1,25 @@
+# Never commit copyrighted game material
+*.iso
+*.cso
+*.BIN
+*.bin
+*.pbp
+*.PBP
+*.prx
+*.PRX
+
+# Decryption dumps
+*_EBOOT.BIN
+BOOT*.BIN
+
+# Local scratch / analysis artifacts
+*.txt
+!requirements.txt
+__pycache__/
+*.pyc
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

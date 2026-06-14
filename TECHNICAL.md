@@ -171,8 +171,36 @@ tiles and is stable across menus and gameplay.
 | 8 | hook A + cave A | `a6 09 00 08` | `→ j caveA` + 7-word cave |
 | 9 | hook B + cave B | `a6 28 00 08` | `→ j caveB` + 7-word cave |
 
-All nine validated byte-level on EU, US and JP. On EU the result is **identical**
-to the manually-built reference confirmed in-game.
+### v1.1 additions
+
+| # | Patch | Signature | Edit |
+|---|---|---|---|
+| 10 | paint cull right | `3c 07 43 c0` (`lui a3,0x43c0`=384.0f, unique) | `→ 0x43f0` (480.0f) |
+| 11 | paint cull left | window `86 04 00 10 · 00 04 40 23` (unique) | `subu→addiu t0,zr,-96` |
+| 12 | wrap fix draw16 | `a6 09 00 22` (`sh t1,0x22(s0)`, unique) | `→ j cave` (+3 trigger) |
+| 13 | wrap fix draw32 | `a6 28 00 22` (`sh t0,0x22(s1)`, unique) | `→ j cave` (+2 trigger) |
+| 14 | 177c8 hook | `a6 08 00 08` (`sh t0,0x8(s0)`, unique) | `→ j cave` (X−64 / ptr−8) |
+| 15 | 177c8 wrap fix | `a6 08 00 22` (`sh t0,0x22(s0)`, unique) | `→ j cave` (+2 trigger) |
+| 16 | 177c8 counts ×2 | `28 c7 00 0d` / `28 c4 00 0d` near (15) | `→ …11` (13→17) |
+
+**Why the wrap fix (12–15).** The v1.0 hook shifts a tile layer's start left by N
+columns (N=3 for 16 px, N=2 for 32 px: `ptr -= N·4`, `Xstart -= N·16`) to fill the
+widened left margin, but the per-layer wrap trigger (`+0x58` seed → `+0x22`) is
+*not* adjusted. The layer buffer is 64 columns row-major (stride `0x100`); at the
+wrap the rewind subtracts exactly one row (`-0x100`). Because the start moved N
+columns early, the rewind now lands N entries into the **previous** row, so the
+columns after the seam read one tile-row up and render ~16 px **too low**. The fix
+adds `+N` to the trigger so the rewind hits the row boundary exactly. Each fix is a
+4-word cave: `addiu rt,rt,N ; <original sh rt,0x22(rs)> ; j site+8 ; nop`.
+
+All patches are located by unique signatures (verified 1 occurrence on EU/US/JP,
+except the two `subu`/count words which are disambiguated by a context window or by
+proximity to the unique wrap store). Caves are placed in executable zero-padding
+holes found dynamically; v1.1 needs 6 caves (33 words total) spread across the
+`0x1f8xxx–0x1fexxx` padding band.
+
+All validated byte-level on EU, US and JP; the JP auto-output is logically
+identical to the in-game-confirmed manual reference (only cave addresses differ).
 
 ### Per-region anchors (informational; the patcher does not hard-code these)
 
@@ -181,4 +209,9 @@ to the manually-built reference confirmed in-game.
 | hook A `sh t1,8(s0)` | `0x173FC` | `0x173FC` | `0x17464` |
 | hook B `sh t0,8(s1)` | `0x16F30` | `0x16F30` | `0x16F98` |
 | count 16 px | `0x1775C` | `0x1775C` | `0x177C4` |
-| caves | `0x1FF1B4` | `0x1FF1B4` | `0x1FF1B4` |
+| wrap draw16 `sh t1,0x22(s0)` | `0x1741C` | `0x1741C` | `0x17484` |
+| wrap draw32 `sh t0,0x22(s1)` | `0x16F50` | `0x16F50` | `0x16FB8` |
+| 177c8 hook `sh t0,0x8(s0)` | `0x17A50` | `0x17A48` | `0x17AB8` |
+| 177c8 wrap `sh t0,0x22(s0)` | `0x17A70` | `0x17A70` | `0x17AD8` |
+| paint cull right `lui a3,0x43c0` | — | — | `0x7978` |
+| caves (v1.1, ×6) | dynamic | dynamic | dynamic |

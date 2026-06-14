@@ -9,15 +9,10 @@ viewport is opened to the full 480 px and the background tile layers are extende
 with **real stage tiles** on the left and right, **kept centered** — no stretching,
 no triple-render duplication.
 
-## Before / after
-
-| Stock (4:3, pillarbox) | Patched (native 16:9) |
-|:---:|:---:|
-| ![before](images/before_4x3.png) | ![after](images/after_16x9.png) |
-
 | | |
 |---|---|
-| **Supported regions** | EU `ULES-00235`, US `ULUS-10062`, JP `ULJM-05193` (Double Upper) |
+| **Version** | **1.1** |
+| **Supported regions** | EU `ULES-00235`, US `ULUS-10062`, JP `ULJM-05082` (Zero 3 Double Upper) |
 | **Tested on** | PPSSPP |
 | **Input** | a **decrypted** `EBOOT.BIN` (ELF) |
 | **Method** | pure-Python binary patcher, **pattern-scan** (no hard-coded offsets) |
@@ -27,9 +22,22 @@ no triple-render duplication.
 ## What it does
 
 * **Viewport opener** — render window 384 → 480 px, side pillarbox removed.
-* **Background widescreen** — both background draw routines (16 px and 32 px tile
-  layers) get extra columns: 3 on the left + extension on the right (16 px),
-  2 + extension (32 px), so the background fills the whole 480 px **centered**.
+* **Background widescreen** — the three background tile drawers (16 px and 32 px
+  layers) get extra columns + a left shift, so the background fills the whole
+  480 px **centered**.
+
+### New in v1.1
+
+* **Painted-decor / object layers** (temples, trees, foreground props, and the
+  title/menu/character-select art — a separate render path the v1.0 patch never
+  touched) are now extended to 480 px instead of being clipped at the old 4:3
+  bounds.
+* **Wrap-seam vertical-shift fix** — v1.0 shifted the tile layers left to fill
+  the widened side, but the wrap-around trigger wasn't adjusted, so the last
+  column / scroll seam read one tile-row too low (a ~16 px downward shift). All
+  three tile drawers now compensate the trigger, so seams line up exactly.
+* **Third tile drawer** (`FUN_177c8`) — the one tilemap routine v1.0 left in 4:3
+  now gets the full widescreen treatment (count + left shift + seam fix).
 
 The character sprites, HUD and gameplay are untouched and stay centered.
 
