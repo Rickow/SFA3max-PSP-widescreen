@@ -11,6 +11,12 @@ os 480 px completos e as camadas de tiles do fundo são estendidas com **tiles r
 estágio** à esquerda e à direita, **mantendo-se centralizadas** — sem esticar, sem
 duplicação por renderização tripla.
 
+## Antes / depois
+
+| Original (4:3, pillarbox) | Com patch (16:9 nativo) |
+|:---:|:---:|
+| ![antes](images/before_4x3.png) | ![depois](images/after_16x9.png) |
+
 | | |
 |---|---|
 | **Versão** | **1.1** |

@@ -1,5 +1,7 @@
 # Technical write-up — SFA3 MAX 16:9 widescreen patch
 
+> 🌐 **English** · [日本語](TECHNICAL.ja.md) · [Français](TECHNICAL.fr.md) · [Español](TECHNICAL.es.md) · [Português (BR)](TECHNICAL.pt-BR.md)
+
 Full explanation of how the patch was reverse-engineered and what every byte
 edit does. All addresses below are **virtual addresses (VA)** of the decrypted
 EBOOT unless stated otherwise.

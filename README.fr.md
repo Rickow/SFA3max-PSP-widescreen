@@ -11,6 +11,12 @@ fenêtre de rendu est ouverte à 480 px complets et les calques de tuiles du dé
 sont étendus avec de **vraies tuiles du stage** à gauche et à droite, **en restant
 centrés** — sans étirement, sans duplication par triple rendu.
 
+## Avant / après
+
+| D'origine (4:3, pillarbox) | Patché (16:9 natif) |
+|:---:|:---:|
+| ![avant](images/before_4x3.png) | ![après](images/after_16x9.png) |
+
 | | |
 |---|---|
 | **Version** | **1.1** |

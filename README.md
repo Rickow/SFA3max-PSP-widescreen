@@ -11,6 +11,12 @@ viewport is opened to the full 480 px and the background tile layers are extende
 with **real stage tiles** on the left and right, **kept centered** — no stretching,
 no triple-render duplication.
 
+## Before / after
+
+| Stock (4:3, pillarbox) | Patched (native 16:9) |
+|:---:|:---:|
+| ![before](images/before_4x3.png) | ![after](images/after_16x9.png) |
+
 | | |
 |---|---|
 | **Version** | **1.1** |

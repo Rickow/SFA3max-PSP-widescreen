@@ -11,6 +11,12 @@ viewport se abre a los 480 px completos y las capas de tiles del fondo se extien
 **tiles reales del escenario** a izquierda y derecha, **manteniéndose centradas** — sin
 estiramiento, sin duplicación por triple renderizado.
 
+## Antes / después
+
+| Original (4:3, pillarbox) | Con parche (16:9 nativo) |
+|:---:|:---:|
+| ![antes](images/before_4x3.png) | ![después](images/after_16x9.png) |
+
 | | |
 |---|---|
 | **Versión** | **1.1** |
