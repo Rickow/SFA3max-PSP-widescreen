@@ -20,7 +20,7 @@ duplicação por renderização tripla.
 | | |
 |---|---|
 | **Versão** | **1.1** |
-| **Regiões suportadas** | EU `ULES-00235`, US `ULUS-10062`, JP `ULJM-05082` (Zero 3 Double Upper) |
+| **Dumps suportados** | EU `ULES-00235` (v1.01) · US `ULUS-10062` · JP `ULJM-05082` (v1.01, Zero 3 Double Upper) |
 | **Testado em** | PPSSPP |
 | **Entrada** | um `EBOOT.BIN` **descriptografado** (ELF) |
 | **Método** | patcher binário em Python puro, **pattern-scan** (sem offsets fixos) |
@@ -74,6 +74,25 @@ O patcher se recusa a gravar se algo parecer errado (assinatura ausente/duplicad
 
 ---
 
+## Instalação mais fácil — cheat do PPSSPP (sem descriptografar nem reempacotar)
+
+Há cheats prontos em [`cheats/`](cheats/), um por região. Eles aplicam exatamente as
+mesmas edições de memória que o patcher, continuamente em tempo de execução, então **não
+é preciso descriptografar nem reempacotar nada** — basta colocar o arquivo e ativá-lo.
+
+1. Copie `cheats/<DISC-ID>.ini` para `memstick/PSP/Cheats/` (ex.: `ULES00235.ini`).
+2. PPSSPP: **Settings → System → Enable cheats**.
+3. Inicie o jogo → **Pause → Cheats** → marque **"16:9 Widescreen (native, v1.1)"**.
+4. Coloque a opção de tela interna do jogo em **Normal**.
+
+> ⚠️ **Específico de versão.** Os endereços do cheat são fixos para os dumps listados
+> acima (EU/JP **v1.01**). Uma revisão diferente desloca os endereços — nesse caso use o
+> patcher Python, que localiza tudo por padrão e se adapta a qualquer revisão. (A revisão
+> do seu dump aparece nas informações do jogo no PPSSPP, ou como `_1.0x` nos nomes dos
+> save-states.)
+
+---
+
 ## Fluxo completo: ISO → descriptografar → aplicar patch → reempacotar
 
 O EBOOT dentro de uma ISO comercial é **criptografado** (cabeçalho `~PSP` / `PSAR`). Você
@@ -123,6 +142,7 @@ tiles realmente renderizados, não de esticamento.
 | Arquivo | Função |
 |---|---|
 | `sfa3_ws_patternpatcher.py` | o patcher (EU/US/JP, pattern-scan) |
+| `cheats/<DISC-ID>.ini` | cheats do PPSSPP prontos (por região, sem reempacotar) |
 | `README.md` | este arquivo — guia do usuário |
 | `TECHNICAL.md` | documento completo de engenharia reversa: cada patch explicado |
 | `LICENSE` | MIT (apenas o código do patcher); jogo © Capcom |

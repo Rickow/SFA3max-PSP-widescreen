@@ -20,7 +20,7 @@ centrés** — sans étirement, sans duplication par triple rendu.
 | | |
 |---|---|
 | **Version** | **1.1** |
-| **Régions supportées** | EU `ULES-00235`, US `ULUS-10062`, JP `ULJM-05082` (Zero 3 Double Upper) |
+| **Dumps supportés** | EU `ULES-00235` (v1.01) · US `ULUS-10062` · JP `ULJM-05082` (v1.01, Zero 3 Double Upper) |
 | **Testé sur** | PPSSPP |
 | **Entrée** | un `EBOOT.BIN` **déchiffré** (ELF) |
 | **Méthode** | patcher binaire pur-Python, **pattern-scan** (aucun offset codé en dur) |
@@ -75,6 +75,26 @@ manquante/dupliquée), et il est **idempotent** (une nouvelle exécution affiche
 
 ---
 
+## Installation la plus simple — cheat PPSSPP (sans déchiffrer ni réintégrer)
+
+Des cheats prêts à l'emploi sont dans [`cheats/`](cheats/), un par région. Ils
+appliquent exactement les mêmes modifications mémoire que le patcher, en continu à
+l'exécution, donc **rien à déchiffrer ni réintégrer** — il suffit de déposer le fichier
+et de l'activer.
+
+1. Copie `cheats/<DISC-ID>.ini` dans `memstick/PSP/Cheats/` (ex. `ULES00235.ini`).
+2. PPSSPP : **Settings → System → Enable cheats**.
+3. Lance le jeu → **Pause → Cheats** → coche **« 16:9 Widescreen (native, v1.1) »**.
+4. Règle l'option d'affichage interne du jeu sur **Normal**.
+
+> ⚠️ **Spécifique à la version.** Les adresses du cheat sont fixes pour les dumps listés
+> ci-dessus (EU/JP **v1.01**). Une révision différente décale les adresses — dans ce cas,
+> utilise plutôt le patcher Python, qui localise tout par motif et s'adapte à n'importe
+> quelle révision. (La révision de ton dump apparaît dans les infos du jeu de PPSSPP, ou
+> sous la forme `_1.0x` dans les noms de save-states.)
+
+---
+
 ## Workflow complet : ISO → déchiffrer → patcher → réintégrer
 
 L'EBOOT dans une ISO commerciale est **chiffré** (en-tête `~PSP` / `PSAR`). Il faut
@@ -124,6 +144,7 @@ maintenant de vraies tuiles rendues, pas d'un étirement.
 | Fichier | Rôle |
 |---|---|
 | `sfa3_ws_patternpatcher.py` | le patcher (EU/US/JP, pattern-scan) |
+| `cheats/<DISC-ID>.ini` | cheats PPSSPP prêts à l'emploi (par région, sans réintégration) |
 | `README.md` | ce fichier — guide utilisateur |
 | `TECHNICAL.md` | écrit complet de reverse-engineering : chaque patch expliqué |
 | `LICENSE` | MIT (code du patcher uniquement) ; jeu © Capcom |

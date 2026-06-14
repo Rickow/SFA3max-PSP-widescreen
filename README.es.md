@@ -20,7 +20,7 @@ estiramiento, sin duplicación por triple renderizado.
 | | |
 |---|---|
 | **Versión** | **1.1** |
-| **Regiones soportadas** | EU `ULES-00235`, US `ULUS-10062`, JP `ULJM-05082` (Zero 3 Double Upper) |
+| **Dumps soportados** | EU `ULES-00235` (v1.01) · US `ULUS-10062` · JP `ULJM-05082` (v1.01, Zero 3 Double Upper) |
 | **Probado en** | PPSSPP |
 | **Entrada** | un `EBOOT.BIN` **descifrado** (ELF) |
 | **Método** | parcheador binario en Python puro, **pattern-scan** (sin offsets fijos) |
@@ -74,6 +74,26 @@ es **idempotente** (al reejecutarlo muestra `[skip]`).
 
 ---
 
+## Instalación más fácil — cheat de PPSSPP (sin descifrar ni reempaquetar)
+
+Hay cheats listos para usar en [`cheats/`](cheats/), uno por región. Aplican exactamente
+las mismas ediciones de memoria que el parcheador, de forma continua en tiempo de
+ejecución, así que **no hace falta descifrar ni reempaquetar nada** — solo coloca el
+archivo y actívalo.
+
+1. Copia `cheats/<DISC-ID>.ini` en `memstick/PSP/Cheats/` (p. ej. `ULES00235.ini`).
+2. PPSSPP: **Settings → System → Enable cheats**.
+3. Inicia el juego → **Pause → Cheats** → marca **«16:9 Widescreen (native, v1.1)»**.
+4. Pon la opción de pantalla interna del juego en **Normal**.
+
+> ⚠️ **Específico de versión.** Las direcciones del cheat son fijas para los dumps
+> listados arriba (EU/JP **v1.01**). Una revisión distinta desplaza las direcciones — en
+> ese caso usa el parcheador Python, que localiza todo por patrón y se adapta a cualquier
+> revisión. (La revisión de tu dump aparece en la info del juego de PPSSPP, o como `_1.0x`
+> en los nombres de los save-states.)
+
+---
+
 ## Flujo completo: ISO → descifrar → parchear → reempaquetar
 
 El EBOOT dentro de una ISO comercial está **cifrado** (cabecera `~PSP` / `PSAR`). Primero
@@ -123,6 +143,7 @@ proviene de tiles realmente renderizados, no de un estiramiento.
 | Archivo | Propósito |
 |---|---|
 | `sfa3_ws_patternpatcher.py` | el parcheador (EU/US/JP, pattern-scan) |
+| `cheats/<DISC-ID>.ini` | cheats de PPSSPP listos para usar (por región, sin reempaquetar) |
 | `README.md` | este archivo — guía de usuario |
 | `TECHNICAL.md` | documento completo de ingeniería inversa: cada parche explicado |
 | `LICENSE` | MIT (solo el código del parcheador); juego © Capcom |

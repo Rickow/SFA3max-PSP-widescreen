@@ -20,7 +20,7 @@ no triple-render duplication.
 | | |
 |---|---|
 | **Version** | **1.1** |
-| **Supported regions** | EU `ULES-00235`, US `ULUS-10062`, JP `ULJM-05082` (Zero 3 Double Upper) |
+| **Supported dumps** | EU `ULES-00235` (v1.01) · US `ULUS-10062` · JP `ULJM-05082` (v1.01, Zero 3 Double Upper) |
 | **Tested on** | PPSSPP |
 | **Input** | a **decrypted** `EBOOT.BIN` (ELF) |
 | **Method** | pure-Python binary patcher, **pattern-scan** (no hard-coded offsets) |
@@ -69,6 +69,25 @@ game's internal display option to **Normal**.
 
 The patcher refuses to write if anything looks wrong (missing/duplicate
 signature), and is **idempotent** (re-running prints `[skip]`).
+
+---
+
+## Easiest install — PPSSPP cheat (no decrypt, no repack)
+
+Ready-made cheats are in [`cheats/`](cheats/), one per region. They apply the exact
+same memory edits as the patcher, continuously at runtime, so **you don't need to
+decrypt or repack anything** — just drop the file in and enable it.
+
+1. Copy `cheats/<DISC-ID>.ini` into `memstick/PSP/Cheats/` (e.g. `ULES00235.ini`).
+2. PPSSPP: **Settings → System → Enable cheats**.
+3. Launch the game → **Pause → Cheats** → tick **"16:9 Widescreen (native, v1.1)"**.
+4. Set the game's internal display option to **Normal**.
+
+> ⚠️ **Version-specific.** Cheat addresses are fixed for the dumps listed above
+> (EU/JP **v1.01**). A different revision shifts the addresses — in that case use the
+> Python patcher instead, which locates everything by pattern and adapts to any
+> revision. (Your dump's revision shows in PPSSPP's game info, or as `_1.0x` in
+> save-state filenames.)
 
 ---
 
@@ -121,6 +140,7 @@ now comes from real rendered tiles, not stretching.
 | File | Purpose |
 |---|---|
 | `sfa3_ws_patternpatcher.py` | the patcher (EU/US/JP, pattern-scan) |
+| `cheats/<DISC-ID>.ini` | ready-made PPSSPP cheats (per region, no repack needed) |
 | `README.md` | this file — user guide |
 | `TECHNICAL.md` | full reverse-engineering write-up: every patch explained |
 | `LICENSE` | MIT (patcher code only); game © Capcom |
