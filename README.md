@@ -169,3 +169,10 @@ PPSSPP's GE/CPU debuggers. The patch is a set of in-place instruction edits plus
 two small code-caves placed in existing executable padding — no file size change.
 
 Original game © Capcom.
+
+---
+
+## Credits & license
+
+Original patcher under **[MIT](LICENSE)**. Acknowledgments (PPSSPP for testing) and legal
+notes in **[CREDITS.md](CREDITS.md)**. No game/EBOOT is distributed — provide your own.

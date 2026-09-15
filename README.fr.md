@@ -174,3 +174,10 @@ en place plus deux petits code-caves placés dans du padding exécutable existan
 changement de taille de fichier.
 
 Jeu d'origine © Capcom.
+
+---
+
+## Crédits & licence
+
+Patcher original sous **[MIT](LICENSE)**. Remerciements (PPSSPP pour les tests) et mentions
+légales dans **[CREDITS.md](CREDITS.md)**. Aucun jeu/EBOOT n'est distribué — fournis le tien.
