@@ -63,8 +63,10 @@ python sfa3_ws_patternpatcher.py  EBOOT.BIN  EBOOT_WS.BIN
 その後 `EBOOT_WS.BIN` を実行（または下記のように ISO へ再パック）し、ゲーム内の表示
 設定を **ノーマル** にします。
 
-パッチャーは異常を検出すると（シグネチャの欠落・重複）書き込みを拒否し、**冪等**です
-（再実行すると `[skip]` と表示）。
+パッチャーは異常を検出すると（シグネチャの欠落・重複）書き込みを拒否するため、中途半端に
+パッチされたファイルは生成されません。パッチ済み EBOOT に再実行した場合も拒否します
+（viewport 系は `[skip]`、背景系はシグネチャを見つけられません）。
+`sfa3_ws_isopatcher.py` はこの状態を先に検出し、すでにパッチ済みであることを知らせます。
 
 ---
 
@@ -85,6 +87,53 @@ python sfa3_ws_patternpatcher.py  EBOOT.BIN  EBOOT_WS.BIN
 > PPSSPP のゲーム情報、またはセーブステート名の `_1.0x` で確認できます。）
 
 ---
+
+---
+
+## ISO を直接パッチする（抽出も UMDGen も不要）
+
+`sfa3_ws_isopatcher.py` はディスクイメージ上で全工程を行います。
+
+```
+python sfa3_ws_isopatcher.py  GAME.iso  GAME_WS.iso
+```
+
+ISO9660 のファイルシステムを走査し（LBA のハードコードなし）、
+`PSP_GAME/SYSDIR/EBOOT.BIN` を見つけてパッチし、新しい ISO を書き出します。書き出し
+後はその ISO を開き直して検証します。EBOOT がパッチ後と完全に一致し、**他のすべての
+ファイルがバイト単位で同一**であること（ファイルごとに sha1）を確認します。
+
+* **復号済み EBOOT を含む ISO**（「DECRYPTED」ISO、または一度再パックしたもの）:
+  **その場で**パッチします。パッチはファイルサイズを変えないため、LBA は 1 つも動きません。
+* **製品版 ISO（暗号化された `~PSP` EBOOT）**: こちらも復号は不要です。製品版 UMD は
+  署名済みバイナリの隣に*暗号化されていない* ELF を `PSP_GAME/SYSDIR/BOOT.BIN` として
+  保持しており、これは PPSSPP の復号済みダンプとバイト単位で同一のプログラムです
+  （EU・US・JP で確認済み）。スクリプトは自動的にこれを使ってパッチし、`EBOOT.BIN` の
+  位置に書き込みます。両方がパッチ済みになります（`--no-boot` で `BOOT.BIN` は変更せず）。
+  本作ではパッチ済み ELF が暗号化 EBOOT より*小さい*ため、既存のエクステントに収まり
+  LBA は動きません。
+
+  素の `BOOT.BIN` を持たない ISO では、復号済み EBOOT を渡してください。
+  ```
+  python sfa3_ws_isopatcher.py GAME.iso GAME_WS.iso --eboot ULES00235_EBOOT.BIN
+  ```
+  （`--decrypter "<cmd>"`、`<cmd> <入力> <出力>` として呼び出し、も可）。その結果が元より
+  大きくなる場合は、UMDGen と同じようにイメージをリサイズします（後続セクタの移動、全
+  ディレクトリレコードの LBA、2 つのパステーブル、ボリュームサイズの修正）。
+* **CSO 入力**をそのまま読めます（`GAME.cso` → パッチ済み `.iso`）。CSO に戻すには
+  maxcso を使ってください。ZSO/DAX は非対応です。
+* `--list` で ISO のツリー表示 · `--dry-run` は何も書き込みません · パッチ済み ISO に
+  再実行した場合はその旨を表示するだけです。
+
+3 地域の製品版 **および** 復号済み ISO で検証済み（EU `ULES-00235`、US `ULUS-10062`、
+JP `ULJM-05082`）。いずれも ISO から読み戻したパッチ済み EBOOT が、その地域のチート
+ファイルと完全に同じ 62 ワードの変更を持ち、ディスク上の他のファイルはすべてバイト単位で
+同一でした。
+
+> ISO 内の復号済み EBOOT は PPSSPP では問題なく動作します。実機／CFW では再署名
+> （`sign_np`）が必要です。素の `BOOT.BIN` を持たない ISO では復号の手順が避けられません
+> — UMDGen でも不可能です。UMDGen が行うのはファイルシステムの操作だけで、このスクリプト
+> が置き換えるのはまさにその部分です。
 
 ## 完全な手順：ISO → 復号 → パッチ → 再パック
 
@@ -134,7 +183,8 @@ python sfa3_ws_patternpatcher.py  ULES00235_EBOOT.BIN  EBOOT_WS.BIN
 
 | ファイル | 内容 |
 |---|---|
-| `sfa3_ws_patternpatcher.py` | パッチャー本体（EU/US/JP、パターンスキャン） |
+| `sfa3_ws_patternpatcher.py` | EBOOT パッチャー本体（EU/US/JP、パターンスキャン） |
+| `sfa3_ws_isopatcher.py` | ISO/CSO を直接パッチ：EBOOT を検出・パッチ・再挿入 |
 | `cheats/<DISC-ID>.ini` | すぐ使える PPSSPP チート（リージョン別、再パック不要） |
 | `README.md` | このファイル — ユーザーガイド |
 | `TECHNICAL.md` | リバースエンジニアリングの詳細解説：全パッチの説明 |
@@ -148,7 +198,7 @@ python sfa3_ws_patternpatcher.py  ULES00235_EBOOT.BIN  EBOOT_WS.BIN
 |---|---|---|
 | **Python 3** | パッチャーの実行（標準ライブラリのみ — `pip install` 不要） | python.org |
 | **PPSSPP** | EBOOT 復号ダンプ・リバースエンジニアリングに使用した GE/CPU デバッガ | ppsspp.org |
-| **UMDGen** | パッチ済み EBOOT を ISO に再パック | （Windows 用 ISO ツール） |
+| **UMDGen** | パッチ済み EBOOT を ISO に再パック — **任意**、`sfa3_ws_isopatcher.py` が代行 | （Windows 用 ISO ツール） |
 | **PRXDecrypter** | 実機/CFW PSP での EBOOT 復号（代替手段） | （PSP homebrew） |
 | **sign_np** | 実機用に EBOOT を再署名（PPSSPP では不要） | （PSP homebrew） |
 

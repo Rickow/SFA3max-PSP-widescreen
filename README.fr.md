@@ -71,7 +71,10 @@ Lance ensuite `EBOOT_WS.BIN` (ou réintègre-le dans l'ISO — voir plus bas) et
 l'option d'affichage interne du jeu sur **Normal**.
 
 Le patcher refuse d'écrire si quelque chose semble anormal (signature
-manquante/dupliquée), et il est **idempotent** (une nouvelle exécution affiche `[skip]`).
+manquante/dupliquée) : il ne produit jamais de fichier à moitié patché. Relancé sur un
+EBOOT déjà patché il refuse aussi (les patches viewport affichent `[skip]`, ceux du fond
+ne retrouvent plus leurs signatures) ; `sfa3_ws_isopatcher.py` détecte ce cas d'emblée et
+signale que l'EBOOT est déjà patché.
 
 ---
 
@@ -94,6 +97,58 @@ et de l'activer.
 > sous la forme `_1.0x` dans les noms de save-states.)
 
 ---
+
+---
+
+## Patcher un ISO directement (sans extraction ni UMDGen)
+
+`sfa3_ws_isopatcher.py` fait tout le travail sur l'image disque :
+
+```
+python sfa3_ws_isopatcher.py  JEU.iso  JEU_WS.iso
+```
+
+Il parcourt le système de fichiers ISO9660 (aucun LBA codé en dur), trouve
+`PSP_GAME/SYSDIR/EBOOT.BIN`, le patche et écrit un nouvel ISO — puis rouvre cet
+ISO pour le vérifier : l'EBOOT se relit exactement tel que patché et **tous les
+autres fichiers sont identiques octet pour octet** (sha1 par fichier).
+
+* **ISO contenant un EBOOT déchiffré** (ISO « DECRYPTED », ou déjà réintégré une
+  fois) : patché **sur place** — le patch ne change jamais la taille du fichier,
+  donc aucun LBA ne bouge.
+* **ISO retail (EBOOT chiffré `~PSP`)** : rien à déchiffrer non plus. Un UMD retail
+  conserve l'ELF *en clair* juste à côté du signé, sous
+  `PSP_GAME/SYSDIR/BOOT.BIN` — octet pour octet le même programme que le dump
+  déchiffré de PPSSPP (vérifié sur EU, US et JP). Le script bascule dessus
+  automatiquement, le patche et l'écrit dans l'emplacement `EBOOT.BIN` ; les deux
+  emplacements finissent patchés (`--no-boot` laisse `BOOT.BIN` tranquille). Sur ce
+  jeu l'ELF patché est *plus petit* que l'EBOOT chiffré : il tient dans l'extent
+  existant et aucun LBA ne bouge.
+
+  Pour un ISO sans `BOOT.BIN` en clair, fournis un EBOOT déchiffré :
+  ```
+  python sfa3_ws_isopatcher.py JEU.iso JEU_WS.iso --eboot ULES00235_EBOOT.BIN
+  ```
+  (ou `--decrypter "<cmd>"`, appelé comme `<cmd> <entrée> <sortie>`, pour un outil
+  type PRXDecrypter). Si le résultat demande alors plus de place que l'original,
+  l'image est redimensionnée comme le ferait UMDGen : décalage des secteurs suivants,
+  correction de tous les LBA des enregistrements de répertoire, des deux tables de
+  chemins et de la taille du volume.
+* **Entrée CSO** lue directement (`JEU.cso` → `.iso` patché) ; utilise maxcso pour
+  recompresser en CSO. ZSO/DAX non pris en charge.
+* `--list` affiche l'arborescence · `--dry-run` n'écrit rien · relancé sur un ISO
+  déjà patché, il le dit et ne touche à rien.
+
+Testé sur les ISO retail **et** déchiffrés des trois régions (EU `ULES-00235`,
+US `ULUS-10062`, JP `ULJM-05082`) : à chaque fois l'EBOOT relu depuis l'ISO porte
+exactement les 62 mots modifiés du cheat de la région, et tous les autres fichiers du
+disque sont identiques octet pour octet.
+
+> Un EBOOT déchiffré dans un ISO tourne très bien sous PPSSPP ; la PSP réelle/CFW
+> exige toujours un EBOOT re-signé (`sign_np`). Si un ISO n'a pas de `BOOT.BIN` en
+> clair, l'étape de déchiffrement devient incontournable — UMDGen ne sait pas le
+> faire non plus ; il ne fait que la chirurgie du système de fichiers, ce que ce
+> script remplace justement.
 
 ## Workflow complet : ISO → déchiffrer → patcher → réintégrer
 
@@ -143,7 +198,8 @@ maintenant de vraies tuiles rendues, pas d'un étirement.
 
 | Fichier | Rôle |
 |---|---|
-| `sfa3_ws_patternpatcher.py` | le patcher (EU/US/JP, pattern-scan) |
+| `sfa3_ws_patternpatcher.py` | le patcher d'EBOOT (EU/US/JP, pattern-scan) |
+| `sfa3_ws_isopatcher.py` | patche un ISO/CSO directement : trouve, patche et réinsère l'EBOOT |
 | `cheats/<DISC-ID>.ini` | cheats PPSSPP prêts à l'emploi (par région, sans réintégration) |
 | `README.md` | ce fichier — guide utilisateur |
 | `TECHNICAL.md` | écrit complet de reverse-engineering : chaque patch expliqué |
@@ -157,7 +213,7 @@ maintenant de vraies tuiles rendues, pas d'un étirement.
 |---|---|---|
 | **Python 3** | exécute le patcher (stdlib uniquement — pas de `pip install`) | python.org |
 | **PPSSPP** | dump de déchiffrement EBOOT · débogueurs GE/CPU utilisés pour le reverse | ppsspp.org |
-| **UMDGen** | réintègre l'EBOOT patché dans l'ISO | (outil ISO Windows) |
+| **UMDGen** | réintègre l'EBOOT patché dans l'ISO — **facultatif**, `sfa3_ws_isopatcher.py` le fait | (outil ISO Windows) |
 | **PRXDecrypter** | déchiffrement EBOOT alternatif sur PSP réelle/CFW | (homebrew PSP) |
 | **sign_np** | re-signe l'EBOOT pour le matériel réel (inutile pour PPSSPP) | (homebrew PSP) |
 
