@@ -70,9 +70,8 @@ Depois execute `EBOOT_WS.BIN` (ou reempacote-o na ISO — veja abaixo) e coloque
 tela interna do jogo em **Normal**.
 
 O patcher se recusa a gravar se algo parecer errado (assinatura ausente/duplicada), então
-nunca produz um arquivo meio corrigido. Executado num EBOOT já corrigido ele também recusa
-(os patches de viewport exibem `[skip]`, os do fundo não acham mais suas assinaturas);
-`sfa3_ws_isopatcher.py` detecta esse caso de antemão e avisa que o EBOOT já está corrigido.
+nunca produz um arquivo meio corrigido, e reconhece de antemão um EBOOT ou uma ISO já
+corrigidos, que deixa intactos.
 
 ---
 
@@ -99,10 +98,10 @@ mesmas edições de memória que o patcher, continuamente em tempo de execução
 
 ## Aplicar o patch direto na ISO (sem extrair, sem UMDGen)
 
-`sfa3_ws_isopatcher.py` faz todo o trabalho na imagem de disco:
+O **mesmo script** aceita a imagem de disco e faz todo o trabalho:
 
 ```
-python sfa3_ws_isopatcher.py  JOGO.iso  JOGO_WS.iso
+python sfa3_ws_patternpatcher.py  JOGO.iso  JOGO_WS.iso
 ```
 
 Ele percorre o sistema de arquivos ISO9660 (sem nenhum LBA fixo no código), encontra
@@ -124,7 +123,7 @@ arquivos ficam idênticos byte a byte** (sha1 por arquivo).
 
   Para uma ISO sem um `BOOT.BIN` em claro, passe um EBOOT descriptografado:
   ```
-  python sfa3_ws_isopatcher.py JOGO.iso JOGO_WS.iso --eboot ULES00235_EBOOT.BIN
+  python sfa3_ws_patternpatcher.py JOGO.iso JOGO_WS.iso --eboot ULES00235_EBOOT.BIN
   ```
   (ou `--decrypter "<cmd>"`, chamada como `<cmd> <entrada> <saída>`, para uma ferramenta
   tipo PRXDecrypter). Se o resultado precisar de mais espaço que o original, a imagem é
@@ -195,8 +194,7 @@ tiles realmente renderizados, não de esticamento.
 
 | Arquivo | Função |
 |---|---|
-| `sfa3_ws_patternpatcher.py` | o patcher de EBOOT (EU/US/JP, pattern-scan) |
-| `sfa3_ws_isopatcher.py` | aplica o patch direto numa ISO/CSO: encontra, corrige e reinsere o EBOOT |
+| `sfa3_ws_patternpatcher.py` | o patcher — um único arquivo, aceita uma ISO/CSO **ou** um EBOOT descriptografado |
 | `cheats/<DISC-ID>.ini` | cheats do PPSSPP prontos (por região, sem reempacotar) |
 | `README.md` | este arquivo — guia do usuário |
 | `TECHNICAL.md` | documento completo de engenharia reversa: cada patch explicado |
@@ -210,7 +208,7 @@ tiles realmente renderizados, não de esticamento.
 |---|---|---|
 | **Python 3** | executa o patcher (apenas stdlib — sem `pip install`) | python.org |
 | **PPSSPP** | dump de descriptografia do EBOOT · depuradores GE/CPU usados na engenharia reversa | ppsspp.org |
-| **UMDGen** | reempacota o EBOOT corrigido na ISO — **opcional**, `sfa3_ws_isopatcher.py` faz isso | (ferramenta ISO do Windows) |
+| **UMDGen** | reempacota o EBOOT corrigido na ISO — **opcional**, `sfa3_ws_patternpatcher.py` faz isso | (ferramenta ISO do Windows) |
 | **PRXDecrypter** | descriptografia de EBOOT alternativa em PSP real/CFW | (homebrew PSP) |
 | **sign_np** | reassina o EBOOT para hardware real (desnecessário no PPSSPP) | (homebrew PSP) |
 

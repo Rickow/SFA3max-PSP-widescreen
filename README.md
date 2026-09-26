@@ -68,10 +68,8 @@ Then run `EBOOT_WS.BIN` (or repack it into the ISO — see below) and set the
 game's internal display option to **Normal**.
 
 The patcher refuses to write if anything looks wrong (missing/duplicate
-signature), so it never produces a half-patched file. Run on an already-patched
-EBOOT it refuses too (the viewport edits print `[skip]`, the background ones no
-longer find their signatures); `sfa3_ws_isopatcher.py` detects that case up front
-and tells you the EBOOT is already patched.
+signature), so it never produces a half-patched file, and it recognises an
+already-patched EBOOT or ISO up front and leaves it alone.
 
 ---
 
@@ -98,10 +96,10 @@ decrypt or repack anything** — just drop the file in and enable it.
 
 ## Patch an ISO directly (no extraction, no UMDGen)
 
-`sfa3_ws_isopatcher.py` does the whole job on the disc image:
+The **same script** takes the disc image and does the whole job:
 
 ```
-python sfa3_ws_isopatcher.py  GAME.iso  GAME_WS.iso
+python sfa3_ws_patternpatcher.py  GAME.iso  GAME_WS.iso
 ```
 
 It walks the ISO9660 filesystem (no hard-coded LBA), finds
@@ -122,7 +120,7 @@ file is byte-identical** (sha1 per file).
 
   For an ISO without a plain `BOOT.BIN`, supply a decrypted EBOOT instead:
   ```
-  python sfa3_ws_isopatcher.py GAME.iso GAME_WS.iso --eboot ULES00235_EBOOT.BIN
+  python sfa3_ws_patternpatcher.py GAME.iso GAME_WS.iso --eboot ULES00235_EBOOT.BIN
   ```
   (or `--decrypter "<cmd>"`, called as `<cmd> <in> <out>`, for a PRXDecrypter-style
   tool). If the result then needs more room than the original, the image is resized
@@ -191,8 +189,7 @@ now comes from real rendered tiles, not stretching.
 
 | File | Purpose |
 |---|---|
-| `sfa3_ws_patternpatcher.py` | the EBOOT patcher (EU/US/JP, pattern-scan) |
-| `sfa3_ws_isopatcher.py` | patches an ISO/CSO directly: finds, patches and re-inserts the EBOOT |
+| `sfa3_ws_patternpatcher.py` | the patcher — one file, takes an ISO/CSO **or** a decrypted EBOOT |
 | `cheats/<DISC-ID>.ini` | ready-made PPSSPP cheats (per region, no repack needed) |
 | `README.md` | this file — user guide |
 | `TECHNICAL.md` | full reverse-engineering write-up: every patch explained |
@@ -206,7 +203,7 @@ now comes from real rendered tiles, not stretching.
 |---|---|---|
 | **Python 3** | runs the patcher (stdlib only — no `pip install`) | python.org |
 | **PPSSPP** | EBOOT decryption dump · GE/CPU debuggers used for the reverse-engineering | ppsspp.org |
-| **UMDGen** | repack the patched EBOOT into the ISO — **optional**, `sfa3_ws_isopatcher.py` does it | (Windows ISO tool) |
+| **UMDGen** | repack the patched EBOOT into the ISO — **optional**, `sfa3_ws_patternpatcher.py` does it | (Windows ISO tool) |
 | **PRXDecrypter** | alternative EBOOT decryption on real/CFW PSP | (PSP homebrew) |
 | **sign_np** | re-sign EBOOT for real-hardware use (not needed for PPSSPP) | (PSP homebrew) |
 

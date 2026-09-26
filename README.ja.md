@@ -64,9 +64,8 @@ python sfa3_ws_patternpatcher.py  EBOOT.BIN  EBOOT_WS.BIN
 設定を **ノーマル** にします。
 
 パッチャーは異常を検出すると（シグネチャの欠落・重複）書き込みを拒否するため、中途半端に
-パッチされたファイルは生成されません。パッチ済み EBOOT に再実行した場合も拒否します
-（viewport 系は `[skip]`、背景系はシグネチャを見つけられません）。
-`sfa3_ws_isopatcher.py` はこの状態を先に検出し、すでにパッチ済みであることを知らせます。
+パッチされたファイルは生成されません。すでにパッチ済みの EBOOT や ISO は先に検出し、
+そのまま残します。
 
 ---
 
@@ -92,10 +91,10 @@ python sfa3_ws_patternpatcher.py  EBOOT.BIN  EBOOT_WS.BIN
 
 ## ISO を直接パッチする（抽出も UMDGen も不要）
 
-`sfa3_ws_isopatcher.py` はディスクイメージ上で全工程を行います。
+**同じスクリプト**にディスクイメージを渡せば、すべてを行います。
 
 ```
-python sfa3_ws_isopatcher.py  GAME.iso  GAME_WS.iso
+python sfa3_ws_patternpatcher.py  GAME.iso  GAME_WS.iso
 ```
 
 ISO9660 のファイルシステムを走査し（LBA のハードコードなし）、
@@ -115,7 +114,7 @@ ISO9660 のファイルシステムを走査し（LBA のハードコードな�
 
   素の `BOOT.BIN` を持たない ISO では、復号済み EBOOT を渡してください。
   ```
-  python sfa3_ws_isopatcher.py GAME.iso GAME_WS.iso --eboot ULES00235_EBOOT.BIN
+  python sfa3_ws_patternpatcher.py GAME.iso GAME_WS.iso --eboot ULES00235_EBOOT.BIN
   ```
   （`--decrypter "<cmd>"`、`<cmd> <入力> <出力>` として呼び出し、も可）。その結果が元より
   大きくなる場合は、UMDGen と同じようにイメージをリサイズします（後続セクタの移動、全
@@ -183,8 +182,7 @@ python sfa3_ws_patternpatcher.py  ULES00235_EBOOT.BIN  EBOOT_WS.BIN
 
 | ファイル | 内容 |
 |---|---|
-| `sfa3_ws_patternpatcher.py` | EBOOT パッチャー本体（EU/US/JP、パターンスキャン） |
-| `sfa3_ws_isopatcher.py` | ISO/CSO を直接パッチ：EBOOT を検出・パッチ・再挿入 |
+| `sfa3_ws_patternpatcher.py` | パッチャー本体 — 1 ファイルで ISO/CSO **または** 復号済み EBOOT を受け付け |
 | `cheats/<DISC-ID>.ini` | すぐ使える PPSSPP チート（リージョン別、再パック不要） |
 | `README.md` | このファイル — ユーザーガイド |
 | `TECHNICAL.md` | リバースエンジニアリングの詳細解説：全パッチの説明 |
@@ -198,7 +196,7 @@ python sfa3_ws_patternpatcher.py  ULES00235_EBOOT.BIN  EBOOT_WS.BIN
 |---|---|---|
 | **Python 3** | パッチャーの実行（標準ライブラリのみ — `pip install` 不要） | python.org |
 | **PPSSPP** | EBOOT 復号ダンプ・リバースエンジニアリングに使用した GE/CPU デバッガ | ppsspp.org |
-| **UMDGen** | パッチ済み EBOOT を ISO に再パック — **任意**、`sfa3_ws_isopatcher.py` が代行 | （Windows 用 ISO ツール） |
+| **UMDGen** | パッチ済み EBOOT を ISO に再パック — **任意**、`sfa3_ws_patternpatcher.py` が代行 | （Windows 用 ISO ツール） |
 | **PRXDecrypter** | 実機/CFW PSP での EBOOT 復号（代替手段） | （PSP homebrew） |
 | **sign_np** | 実機用に EBOOT を再署名（PPSSPP では不要） | （PSP homebrew） |
 
